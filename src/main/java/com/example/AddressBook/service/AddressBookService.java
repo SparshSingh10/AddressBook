@@ -1,33 +1,59 @@
 package com.example.AddressBook.service;
 
 import com.example.AddressBook.dto.AddressBookDTO;
+import com.example.AddressBook.model.AddressBook;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class AddressBookService implements IAddressBookService {
 
+    private final List<AddressBook> addressBookList = new ArrayList<>();
+    private long idCounter = 1;  // Simulates auto-increment ID
+
     @Override
-    public String getAllContacts() {
-        return "Returning all contacts (but not actually storing any)";
+    public List<AddressBook> getAllContacts() {
+        return addressBookList;
     }
 
     @Override
-    public String getContactById(Long id) {
-        return "Returning contact with ID: " + id + " (but not actually stored)";
+    public AddressBook getContactById(Long id) {
+        for (AddressBook contact : addressBookList) {
+            if (contact.getId().equals(id)) {
+                return contact;
+            }
+        }
+        return null; // Not found
     }
 
     @Override
-    public String addContact(AddressBookDTO addressBookDTO) {
-        return "Adding new contact: " + addressBookDTO.getName() + " (but not actually stored)";
+    public AddressBook createAddressBookData(AddressBookDTO addressBookDTO) {
+        AddressBook addressBook = new AddressBook(idCounter++, addressBookDTO.getName(), addressBookDTO.getAddress(), addressBookDTO.getPhoneNumber());
+        addressBookList.add(addressBook);
+        return addressBook;
     }
 
     @Override
-    public String updateContact(Long id, AddressBookDTO addressBookDTO) {
-        return "Updating contact with ID: " + id + " (but not actually stored)";
+    public AddressBook updateContact(Long id, AddressBookDTO addressBookDTO) {
+        for (AddressBook contact : addressBookList) {
+            if (contact.getId().equals(id)) {
+                contact.setName(addressBookDTO.getName());
+                contact.setAddress(addressBookDTO.getAddress());
+                contact.setPhoneNumber(addressBookDTO.getPhoneNumber());
+                return contact;
+            }
+        }
+        return null; // Not found
     }
 
     @Override
-    public String deleteContact(Long id) {
-        return "Deleting contact with ID: " + id + " (but not actually stored)";
+    public void deleteContact(Long id) {
+        for (int i = 0; i < addressBookList.size(); i++) {
+            if (addressBookList.get(i).getId().equals(id)) {
+                addressBookList.remove(i);
+                return;
+            }
+        }
     }
 }
