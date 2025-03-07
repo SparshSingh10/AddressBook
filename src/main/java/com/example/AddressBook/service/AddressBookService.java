@@ -2,58 +2,53 @@ package com.example.AddressBook.service;
 
 import com.example.AddressBook.dto.AddressBookDTO;
 import com.example.AddressBook.model.AddressBook;
+import com.example.AddressBook.repository.AddressBookRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
+
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AddressBookService implements IAddressBookService {
 
-    private final List<AddressBook> addressBookList = new ArrayList<>();
-    private long idCounter = 1;  // Simulates auto-increment ID
+    @Autowired
+    private AddressBookRepository addressBookRepository;
 
     @Override
     public List<AddressBook> getAllContacts() {
-        return addressBookList;
+        return addressBookRepository.findAll();
     }
 
     @Override
     public AddressBook getContactById(Long id) {
-        for (AddressBook contact : addressBookList) {
-            if (contact.getId().equals(id)) {
-                return contact;
-            }
-        }
-        return null; // Not found
+        return addressBookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Contact not found with ID: " + id));
     }
 
     @Override
     public AddressBook createAddressBookData(AddressBookDTO addressBookDTO) {
-        AddressBook addressBook = new AddressBook(idCounter++, addressBookDTO.getName(), addressBookDTO.getAddress(), addressBookDTO.getPhoneNumber());
-        addressBookList.add(addressBook);
-        return addressBook;
+        AddressBook addressBook = new AddressBook(addressBookDTO);
+        return addressBookRepository.save(addressBook);
     }
 
     @Override
     public AddressBook updateContact(Long id, AddressBookDTO addressBookDTO) {
-        for (AddressBook contact : addressBookList) {
-            if (contact.getId().equals(id)) {
-                contact.setName(addressBookDTO.getName());
-                contact.setAddress(addressBookDTO.getAddress());
-                contact.setPhoneNumber(addressBookDTO.getPhoneNumber());
-                return contact;
-            }
-        }
-        return null; // Not found
+        AddressBook existingContact = addressBookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Contact not found with ID: " + id));
+
+        existingContact.setName(addressBookDTO.getName());
+        existingContact.setPhoneNumber(addressBookDTO.getPhoneNumber());
+        existingContact.setAddress(addressBookDTO.getAddress());
+
+        return addressBookRepository.save(existingContact);
     }
 
     @Override
     public void deleteContact(Long id) {
-        for (int i = 0; i < addressBookList.size(); i++) {
-            if (addressBookList.get(i).getId().equals(id)) {
-                addressBookList.remove(i);
-                return;
-            }
+        if (!addressBookRepository.existsById(id)) {
+            throw new RuntimeException("Contact not found with ID: " + id);
         }
+        addressBookRepository.deleteById(id);
     }
 }
